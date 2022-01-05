@@ -1,3 +1,5 @@
+"""SQS-SNS service stack."""
+
 import os
 from aws_cdk import (
     Stack,
@@ -12,10 +14,25 @@ from .email_subscibers import email_subscribers
 
 
 class SqsServiceStack(Stack):
+    """Custom stack for deploying services.
+
+    Args:
+        Stack ([type]): Base class
+    """
+
     def __init__(
         self, scope: Construct, construct_id: str, files_info_queue: sqs.Queue, **kwargs
     ) -> None:
+        """Create all instances of the SqsServiceStack stack.
+
+        Args:
+            scope (Construct): the construct within which this construct is defined
+            construct_id (str): stack logical identifier
+            files_info_queue (sqs.Queue): Queue for messages which is created within FileServiceStack
+        """
         super().__init__(scope, construct_id, **kwargs)
+
+        # SNS for notification
         file_topic = sns.Topic(
             self,
             "fileInfoTopic",
@@ -24,10 +41,12 @@ class SqsServiceStack(Stack):
         )
         for email, filter in email_subscribers.items():
             file_topic.add_subscription(
-                sns_subscriptions.EmailSubscription(email, filter_policy=filter)
+                sns_subscriptions.EmailSubscription(
+                    email, filter_policy=filter)
             )
 
-        file_handler = lambda_.Function(
+        # Function for handling messages from SQS
+        sqs_handler = lambda_.Function(
             self,
             "sqsHandler",
             runtime=lambda_.Runtime.PYTHON_3_9,
@@ -38,5 +57,9 @@ class SqsServiceStack(Stack):
             environment={"SNS_FILE_INFO_TOPIC_ARN": file_topic.topic_arn},
         )
 
-        file_topic.grant_publish(file_handler)
-        file_handler.add_event_source(SqsEventSource(files_info_queue, batch_size=5))
+        # Grant permission for lambda[sqs_handler] to publish messages to SNS topic[file_topic]
+        file_topic.grant_publish(sqs_handler)
+
+        # Add event source for lambda[sqs_handler] when messages appear in SQS[files_info_queue]
+        sqs_handler.add_event_source(
+            SqsEventSource(files_info_queue, batch_size=5))

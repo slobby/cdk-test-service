@@ -1,15 +1,22 @@
 #!/usr/bin/env python3
-import os
+
+"""Main file to synthesize CF
+    """
+
+
 import aws_cdk as cdk
-from dotenv import load_dotenv
-
-load_dotenv()
-
+import os
 from file_service.file_service_stack import FileServiceStack
 from sqs_service.sqs_service_stack import SqsServiceStack
+from dotenv import load_dotenv
+load_dotenv()
 
-print(os.getenv("CDK_DEFAULT_ACCOUNT"))
-print(os.getenv("CDK_DEFAULT_REGION"))
+
+print(f"Default account - {os.getenv('CDK_DEFAULT_ACCOUNT')=}")
+print(f"Default region - {os.getenv('CDK_DEFAULT_REGION')=}")
+print(f"Deployed account - {os.getenv('CDK_DEPLOY_ACCOUNT')=}")
+print(f"Deployed region - {os.getenv('CDK_DEPLOY_REGION')=}")
+
 
 app = cdk.App()
 file_service_stack = FileServiceStack(
