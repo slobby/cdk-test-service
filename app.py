@@ -1,15 +1,14 @@
 #!/usr/bin/env python3
 
-"""Main file to synthesize CF
-    """
+"""Main file to synthesize CF."""
+from dotenv import load_dotenv
+load_dotenv()
 
 
 import aws_cdk as cdk
 import os
 from file_service.file_service_stack import FileServiceStack
 from sqs_service.sqs_service_stack import SqsServiceStack
-from dotenv import load_dotenv
-load_dotenv()
 
 
 print(f"Default account - {os.getenv('CDK_DEFAULT_ACCOUNT')=}")
